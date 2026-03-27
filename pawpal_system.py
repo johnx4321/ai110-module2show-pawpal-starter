@@ -35,6 +35,28 @@ class Task:
         """Reset completion status (e.g. for a new day)."""
         self.is_completed = False
 
+    def generate_next_occurrence(self) -> Optional['Task']:
+        """
+        Generate a new task instance for the next occurrence (daily/weekly).
+        Returns None if the task is 'as_needed' (non-recurring).
+        """
+        if self.frequency == Frequency.AS_NEEDED:
+            return None  # No automatic recurrence
+
+        # Create a new task instance for the next occurrence
+        next_task = Task(
+            task_id=f"{self.task_id}_next",
+            name=self.name,
+            description=self.description,
+            category=self.category,
+            duration=self.duration,
+            priority=self.priority,
+            frequency=self.frequency,
+            preferred_time=self.preferred_time,
+            is_completed=False,
+        )
+        return next_task
+
     def to_dict(self) -> dict:
         """Serialize task to a dictionary for display or storage."""
         return {
@@ -65,6 +87,21 @@ class Pet:
     def remove_task(self, task_id: str) -> None:
         """Remove a task by its ID."""
         self.tasks = [t for t in self.tasks if t.task_id != task_id]
+
+    def complete_and_reschedule(self, task_id: str) -> Optional[Task]:
+        """
+        Mark a task complete and create a new instance for the next occurrence.
+        Returns the newly created task, or None if the task is non-recurring.
+        """
+        for task in self.tasks:
+            if task.task_id == task_id:
+                task.complete()
+                next_task = task.generate_next_occurrence()
+                if next_task:
+                    self.add_task(next_task)
+                    return next_task
+                return None
+        return None  # Task not found
 
     def get_tasks(self) -> list[Task]:
         """Return all tasks for this pet."""
@@ -105,6 +142,7 @@ class Scheduler:
         self.scheduled_tasks: list[Task] = []
         self.unscheduled_tasks: list[Task] = []
         self.explanations: dict[str, str] = {}  # task_id -> reason string
+        self.conflicts: list[str] = []  # warning messages for time conflicts
 
     def generate_plan(self) -> None:
         """Main entry point: build the daily plan from the owner's pets' tasks."""
@@ -112,6 +150,7 @@ class Scheduler:
         self.scheduled_tasks = []
         self.unscheduled_tasks = []
         self.explanations = {}
+        self.conflicts = []
 
         ordered = self.prioritize_tasks()
         time_remaining = self.owner.available_time
@@ -129,6 +168,9 @@ class Scheduler:
                     f"Skipped '{task.name}' — not enough time remaining ({time_remaining} min left)"
                 )
 
+        # Detect conflicts after scheduling
+        self.detect_conflicts()
+
     def prioritize_tasks(self) -> list[Task]:
         """
         Retrieve all tasks from the owner's pets and sort them.
@@ -139,6 +181,28 @@ class Scheduler:
         all_tasks = self.owner.get_all_tasks()
         pending = [t for t in all_tasks if not t.is_completed]
         return sorted(pending, key=lambda t: (-t.priority, t.duration))
+
+    def detect_conflicts(self) -> None:
+        """
+        Detect if multiple tasks are scheduled for the same preferred time.
+        Lightweight strategy: collect warnings without crashing.
+        """
+        self.conflicts = []
+
+        # Group tasks by their preferred_time
+        time_groups: dict[Optional[TimeOfDay], list[Task]] = {}
+        for task in self.scheduled_tasks:
+            if task.preferred_time is not None:  # Only check tasks with explicit time preferences
+                if task.preferred_time not in time_groups:
+                    time_groups[task.preferred_time] = []
+                time_groups[task.preferred_time].append(task)
+
+        # Check each time slot for conflicts (more than one task)
+        for time_slot, tasks in time_groups.items():
+            if len(tasks) > 1:
+                task_list = ", ".join(f"'{t.name}' ({t.duration} min)" for t in tasks)
+                warning = f"⚠ Conflict at {time_slot.value}: {task_list} — owner needs {sum(t.duration for t in tasks)} min"
+                self.conflicts.append(warning)
 
     def explain_plan(self) -> dict[str, str]:
         """Return the reasoning behind each scheduling decision."""
@@ -159,6 +223,48 @@ class Scheduler:
             for task in self.unscheduled_tasks:
                 print(f"  {task.name} — {task.duration} min")
 
+        # Display conflicts if any
+        if self.conflicts:
+            print("\nScheduling Conflicts:")
+            for conflict in self.conflicts:
+                print(f"  {conflict}")
+
         print("\nReasons:")
         for reason in self.explanations.values():
             print(f"  - {reason}")
+    
+    def sort_by_time(self) -> None:
+        """Sort scheduled tasks by their preferred time of day."""
+        # Define time order: morning < afternoon < evening < anytime
+        time_order = {
+        TimeOfDay.MORNING: 0,
+        TimeOfDay.AFTERNOON: 1,
+        TimeOfDay.EVENING: 2,
+        None: 3  # anytime goes last
+        }
+        self.scheduled_tasks.sort(key=lambda t: time_order.get(t.preferred_time, 3))
+
+    def filter_tasks(self, completed: Optional[bool] = None, pet_name: Optional[str] = None) -> list[Task]:
+        """
+        Filter scheduled tasks by completion status and/or pet name.
+        
+        Args:
+            completed: If True, return only completed tasks; if False, only pending tasks; if None, all tasks.
+            pet_name: If provided, return only tasks belonging to the pet with this name.
+        
+        Returns:
+            Filtered list of tasks.
+        """
+        filtered = self.scheduled_tasks
+        
+        if completed is not None:
+            filtered = [t for t in filtered if t.is_completed == completed]
+        
+        if pet_name is not None:
+            pet_task_ids = set()
+            for pet in self.owner.pets:
+                if pet.name == pet_name:
+                    pet_task_ids.update(t.task_id for t in pet.tasks)
+            filtered = [t for t in filtered if t.task_id in pet_task_ids]
+        
+        return filtered

@@ -31,12 +31,19 @@ During implementation, we realized that the `Scheduler` class needed to be more 
 **a. Constraints and priorities**
 
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
+Our scheduler considers several constraints, including:
+- Time constraints: Tasks may have specific time windows during which they can be performed (e.g., morning, afternoon, evening).
+- Priority levels: Tasks can be assigned different priority levels (e.g., high, medium, low) that influence their scheduling order.
+- User preferences: Users may have preferences for when certain tasks should be scheduled (e.g., preferring to walk the dog in the morning).
 - How did you decide which constraints mattered most?
+We decided to prioritize time constraints and user preferences over priority levels because we wanted to ensure that tasks were scheduled at times that were feasible and aligned with the user's lifestyle. For example, if a user prefers to walk their dog in the morning, we would prioritize scheduling that task during the morning time slot, even if it had a lower priority level compared to other tasks. This approach was chosen to enhance user satisfaction and ensure that the scheduling system was practical and user-centric.
 
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+One tradeoff our scheduler makes is that it may not always schedule the highest priority tasks first if they conflict with user preferences or time constraints. For instance, if a high-priority task can only be performed in the evening but the user prefers to do it in the morning, the scheduler may choose to schedule it in the morning to accommodate the user's preference, even though it means that a lower-priority task might be scheduled in the evening instead. It uses a greedy approach that tries to fit tasks into preferred time slots while respecting constraints, which can lead to suboptimal scheduling in terms of priority but better alignment with user preferences.
 - Why is that tradeoff reasonable for this scenario?
+This tradeoff is reasonable because the primary goal of the scheduler is to create a schedule that is practical and user-friendly. While it is important to consider task priorities, it is equally important to respect the user's preferences and time constraints to ensure that the schedule is actually usable and meets the user's needs. By allowing for some flexibility in scheduling based on user preferences, we can create a more personalized and satisfying experience for the user, even if it means that not all high-priority tasks are scheduled first.
 
 ---
 
