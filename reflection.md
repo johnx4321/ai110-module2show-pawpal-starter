@@ -9,12 +9,20 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
+Our initial UML design included the following classes:
+- `Task`: Represents a pet care task, with attributes such as name, description, priority, and time constraints.
+- `Scheduler`: Responsible for scheduling tasks based on their constraints and priorities.
+- `UserInterface`: Handles interactions with the user, allowing them to create and manage tasks, and view the scheduled tasks along with explanations.  
+It was designed to separate concerns, with `Task` handling the data representation of tasks, `Scheduler` managing the logic for scheduling, and `UserInterface` focusing on user interactions and display.
 - What classes did you include, and what responsibilities did you assign to each?
+The `Task` class was responsible for encapsulating the details of each pet care task, including its name, description, priority level, and any time constraints. The `Scheduler` class was tasked with implementing the logic to schedule tasks based on their attributes, ensuring that constraints were respected and priorities were considered. The `UserInterface` class was designed to facilitate user interactions, allowing users to create new tasks, view existing tasks, and see the scheduled tasks along with explanations for the scheduling decisions.
 
 **b. Design changes**
 
 - Did your design change during implementation?
+Yes
 - If yes, describe at least one change and why you made it.
+During implementation, we realized that the `Scheduler` class needed to be more flexible to accommodate additional constraints and preferences that users might have. We decided to refactor the `Scheduler` class to use a more modular approach, allowing us to easily add new scheduling algorithms or constraints in the future without having to overhaul the entire system. This change was made to improve the maintainability and scalability of our scheduler as we anticipated that users might have varying needs and preferences when it comes to scheduling their pet care tasks.
 
 ---
 
