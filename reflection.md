@@ -2,6 +2,10 @@
 
 ## 1. System Design
 
+- Task Management System - User should be able to create, view, and manage tasks related to pet care (feeding, walking, vet appointments).
+- Constraint-aware and weighted scheduling - The system should consider constraints such as time, priority, and user preferences when scheduling tasks.
+- Display to user and explain choice - The system should display the scheduled tasks to the user and provide explanations for why certain tasks were scheduled at specific times.
+
 **a. Initial design**
 
 - Briefly describe your initial UML design.
