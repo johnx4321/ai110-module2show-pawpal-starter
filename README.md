@@ -110,4 +110,9 @@ Overall, while the current tests provide a good level of confidence in the core 
 ### Final
 ![Final UML Diagram](./uml_final.png)
 
+## Extensions
+
+### Challenge 2
+Implemented data storage using json files to persist owner, pet, and task data across sessions. This allows users to save their information and retrieve it later, enhancing the usability of the app.
+
 

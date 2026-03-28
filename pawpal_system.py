@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 from enum import Enum
+import json
 
 
 class TimeOfDay(Enum):
@@ -112,6 +113,40 @@ class Pet:
         needs = ", ".join(self.special_needs) if self.special_needs else "none"
         return f"{self.name} ({self.species}, age {self.age}) — special needs: {needs}"
 
+    def to_dict(self) -> dict:
+        """Serialize pet and its tasks to a dictionary."""
+        return {
+            "name": self.name,
+            "species": self.species,
+            "age": self.age,
+            "special_needs": self.special_needs,
+            "tasks": [t.to_dict() for t in self.tasks],
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> 'Pet':
+        """Deserialize a pet from a dictionary."""
+        pet = Pet(
+            name=data["name"],
+            species=data["species"],
+            age=data["age"],
+            special_needs=data.get("special_needs", []),
+        )
+        for task_data in data.get("tasks", []):
+            task = Task(
+                task_id=task_data["task_id"],
+                name=task_data["name"],
+                description=task_data["description"],
+                category=task_data["category"],
+                duration=task_data["duration"],
+                priority=task_data["priority"],
+                frequency=Frequency(task_data["frequency"]),
+                preferred_time=TimeOfDay(task_data["preferred_time"]) if task_data["preferred_time"] else None,
+                is_completed=task_data["is_completed"],
+            )
+            pet.add_task(task)
+        return pet
+
 
 class Owner:
     def __init__(self, name: str, available_time: int, preferences: dict = None):
@@ -134,6 +169,41 @@ class Owner:
         for pet in self.pets:
             all_tasks.extend(pet.get_tasks())
         return all_tasks
+
+    def to_dict(self) -> dict:
+        """Serialize owner and all pets/tasks to a dictionary."""
+        return {
+            "name": self.name,
+            "available_time": self.available_time,
+            "preferences": self.preferences,
+            "pets": [p.to_dict() for p in self.pets],
+        }
+
+    def save_to_json(self, filename: str = "data.json") -> None:
+        """Save owner, pets, and tasks to a JSON file."""
+        data = self.to_dict()
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=2)
+
+    @staticmethod
+    def load_from_json(filename: str = "data.json") -> Optional['Owner']:
+        """Load owner, pets, and tasks from a JSON file. Returns None if file doesn't exist."""
+        try:
+            with open(filename, "r") as f:
+                data = json.load(f)
+
+            owner = Owner(
+                name=data["name"],
+                available_time=data["available_time"],
+                preferences=data.get("preferences", {}),
+            )
+            for pet_data in data.get("pets", []):
+                pet = Pet.from_dict(pet_data)
+                owner.add_pet(pet)
+
+            return owner
+        except FileNotFoundError:
+            return None
 
 
 class Scheduler:

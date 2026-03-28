@@ -5,9 +5,16 @@ st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 # Initialize owner and pets in session state (persist across reruns)
 if 'owner' not in st.session_state:
-    st.session_state.owner = Owner(name="Jordan", available_time=120)
-    buddy = Pet(name="Mochi", species="cat", age=3)
-    st.session_state.owner.add_pet(buddy)
+    # Try to load from JSON file first
+    loaded_owner = Owner.load_from_json("data.json")
+
+    if loaded_owner:
+        st.session_state.owner = loaded_owner
+    else:
+        # Create default owner if no saved data
+        st.session_state.owner = Owner(name="Jordan", available_time=120)
+        buddy = Pet(name="Mochi", species="cat", age=3)
+        st.session_state.owner.add_pet(buddy)
 
 st.title("🐾 PawPal+")
 
@@ -90,6 +97,7 @@ if st.button("Add task"):
         preferred_time=TimeOfDay[preferred_time.upper()] if preferred_time else None,
     )
     pet.add_task(new_task)
+    st.session_state.owner.save_to_json("data.json")  # Save to file
     st.success(f"✓ Added '{task_title}' to {pet.name}")
     st.rerun()
 

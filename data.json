@@ -1,0 +1,26 @@
+{
+  "name": "Jordan",
+  "available_time": 120,
+  "preferences": {},
+  "pets": [
+    {
+      "name": "Mochi",
+      "species": "cat",
+      "age": 3,
+      "special_needs": [],
+      "tasks": [
+        {
+          "task_id": "task_1",
+          "name": "Morning walk",
+          "description": "Daily exercise",
+          "category": "walk",
+          "duration": 20,
+          "priority": 3,
+          "frequency": "daily",
+          "preferred_time": null,
+          "is_completed": false
+        }
+      ]
+    }
+  ]
+}
