@@ -22,6 +22,34 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## Features
+
+### Scheduling Algorithms
+
+- **Priority & Duration Sorting** — Tasks sorted by priority (high → low), then by duration (short → long) to maximize value fit into available time
+- **Time-of-Day Ordering** — Groups scheduled tasks in chronological order: Morning → Afternoon → Evening → Anytime
+- **Available Time Fitting** — Greedy algorithm that schedules tasks in priority order until available time is exhausted
+- **Conflict Detection** — Identifies when multiple tasks are assigned to the same preferred time slot and generates actionable warnings with time requirements
+
+### Task Recurrence & Management
+
+- **Recurring Task Support** — Three frequency modes: DAILY, WEEKLY, and AS_NEEDED (non-recurring)
+- **Auto-Rescheduling** — Completing a recurring task automatically creates a new instance for the next occurrence (with "_next" suffix in task_id)
+- **Task Completion Tracking** — Marks original task complete while new instance starts pending (only for daily/weekly tasks)
+- **Non-Recurring Handler** — AS_NEEDED tasks do not generate next occurrences when completed
+
+### Filtering & Organization
+
+- **Multi-Criteria Filtering** — Filter scheduled tasks by completion status (true/false/null) and/or pet name
+- **Plan Explanations** — Provides detailed reasoning for why each task was scheduled or skipped (time constraints, priority, etc.)
+- **Task Status Display** — Clear distinction between pending and completed tasks throughout the scheduler
+
+### Data Integrity
+
+- **Type-Safe Enums** — `Frequency` and `TimeOfDay` enums prevent invalid category values
+- **Hierarchical Organization** — Owner → Pet → Task relationships ensure proper data structure and prevent orphaned data
+- **Gentle Error Handling** — System gracefully handles edge cases (negative time, zero duration, duplicate IDs, missing tasks) without crashing
+
 ## Getting started
 
 ### Setup
@@ -67,5 +95,19 @@ In detail, the tests include:
 - Ensuring that filtering by completion status and pet name works as expected.
 - Testing that the conflict detection logic identifies overlapping tasks and generates appropriate warnings.
 Overall, while the current tests provide a good level of confidence in the core scheduling logic, there is always room for improvement by adding more comprehensive tests that cover a wider range of scenarios and edge cases
+
+![Test Results](./ss/test_pass.png)
+
+## 📸 Demo
+![PawPal+ Demo](./ss/app_1.png)
+![PawPal+ Demo](./ss/app_2.png)
+![PawPal+ Demo](./ss/app_3.png)
+
+## UML Diagrams
+
+### Initial
+![Initial UML Diagram](./uml_initial.png)
+### Final
+![Final UML Diagram](./uml_final.png)
 
 

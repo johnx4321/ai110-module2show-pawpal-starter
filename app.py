@@ -120,34 +120,53 @@ st.caption("Build your daily plan. The scheduler will fit tasks into your availa
 if st.button("Generate schedule"):
     scheduler = Scheduler(st.session_state.owner)
     scheduler.generate_plan()
+    scheduler.sort_by_time()  # Sort tasks by time of day
 
     st.success("✓ Schedule generated!")
 
     st.write(f"**Available time:** {st.session_state.owner.available_time} min")
 
+    # Display scheduling conflicts if any exist
+    if scheduler.conflicts:
+        st.warning("⚠️ **Scheduling Conflicts Detected**")
+        for conflict in scheduler.conflicts:
+            st.caption(conflict)
+        with st.expander("💡 How to resolve"):
+            st.markdown(
+                """
+                **Conflict detected:** Multiple tasks are scheduled for the same time slot.
+
+                **Suggestions:**
+                1. **Adjust preferred times** — Change one task's time to morning/afternoon/evening
+                2. **Extend available time** — Try allocating more time for this day
+                3. **Reschedule tasks** — Move lower-priority tasks to another day
+                """
+            )
+
     if scheduler.scheduled_tasks:
-        st.write("**Scheduled tasks:**")
+        st.subheader("📋 Scheduled tasks (sorted by time)")
         scheduled_data = [
             {
                 "Task": t.name,
-                "Time": t.preferred_time.value if t.preferred_time else "anytime",
+                "Time": t.preferred_time.value.capitalize() if t.preferred_time else "Anytime",
                 "Duration": f"{t.duration} min",
-                "Priority": t.priority,
+                "Priority": "🔴" if t.priority == 3 else "🟡" if t.priority == 2 else "🟢",
             }
             for t in scheduler.scheduled_tasks
         ]
         st.table(scheduled_data)
         total_time = sum(t.duration for t in scheduler.scheduled_tasks)
-        st.info(f"Total scheduled time: {total_time} min")
+        remaining_time = st.session_state.owner.available_time - total_time
+        st.success(f"Total scheduled: {total_time} min | Remaining: {remaining_time} min")
 
     if scheduler.unscheduled_tasks:
-        st.warning("**Could not fit:**")
+        st.warning("**Could not fit the following tasks:**")
         unscheduled_data = [
             {"Task": t.name, "Duration": f"{t.duration} min", "Priority": t.priority}
             for t in scheduler.unscheduled_tasks
         ]
         st.table(unscheduled_data)
 
-    with st.expander("View explanations"):
+    with st.expander("View detailed explanations"):
         for task_id, reason in scheduler.explain_plan().items():
             st.caption(reason)

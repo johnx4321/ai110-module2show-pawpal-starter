@@ -1,5 +1,7 @@
 __pycache__/
-.venv/
-.venv_new/
+venv/
+venv_new/
 .pytest_cache/
 .DS_Store
+.claude/
+./tests/__pycache__/
